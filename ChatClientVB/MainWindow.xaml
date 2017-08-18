@@ -1,0 +1,28 @@
+﻿<metro:MetroWindow x:Class="MainWindow"
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                   xmlns:local="clr-namespace:ChatClientVB"
+                   xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"                   
+                   mc:Ignorable="d"
+                   xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
+                   xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"  
+                   Background="{DynamicResource MaterialDesignPaper}"
+                   DataContext="{Binding Source={StaticResource VMLocator}, Path=MainVM}"
+                   d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type={x:Type local:SampleMainWindowViewModel}}"
+                   Title="SignalChat" Height="450" Width="650" TitleCaps="False" TitleCharacterCasing="Normal" 
+                   ShowTitleBar="True" BorderBrush="{DynamicResource PrimaryHueDarkBrush}">
+    <i:Interaction.Triggers>
+        <i:EventTrigger>
+            <i:InvokeCommandAction Command="{Binding ConnectCommand}"/>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Closing">
+            <i:InvokeCommandAction Command="{Binding LogoutCommand}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
+    <Grid>
+        <ContentControl Content="{Binding}" Style="{StaticResource ChatContentStyle}"/>
+    </Grid>
+</metro:MetroWindow>
