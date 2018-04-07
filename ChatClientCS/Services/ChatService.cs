@@ -10,7 +10,8 @@ namespace ChatClientCS.Services
 {
     public class ChatService : IChatService
     {
-        public event Action<string, string, MessageType> NewMessage;
+        public event Action<string, string, MessageType> NewTextMessage;
+        public event Action<string, byte[], MessageType> NewImageMessage;
         public event Action<string> ParticipantDisconnected;
         public event Action<User> ParticipantLoggedIn;
         public event Action<string> ParticipantLoggedOut;
@@ -31,8 +32,10 @@ namespace ChatClientCS.Services
             hubProxy.On<string>("ParticipantLogout", (n) => ParticipantLoggedOut?.Invoke(n));
             hubProxy.On<string>("ParticipantDisconnection", (n) => ParticipantDisconnected?.Invoke(n));
             hubProxy.On<string>("ParticipantReconnection", (n) => ParticipantReconnected?.Invoke(n));
-            hubProxy.On<string, string>("BroadcastMessage", (n, m) => NewMessage?.Invoke(n, m, MessageType.Broadcast));
-            hubProxy.On<string, string>("UnicastMessage", (n, m) => NewMessage?.Invoke(n, m, MessageType.Unicast));
+            hubProxy.On<string, string>("BroadcastTextMessage", (n, m) => NewTextMessage?.Invoke(n, m, MessageType.Broadcast));
+            hubProxy.On<string, byte[]>("BroadcastPictureMessage", (n, m) => NewImageMessage?.Invoke(n, m, MessageType.Broadcast));
+            hubProxy.On<string, string>("UnicastTextMessage", (n, m) => NewTextMessage?.Invoke(n, m, MessageType.Unicast));
+            hubProxy.On<string, byte[]>("UnicastPictureMessage", (n, m) => NewImageMessage?.Invoke(n, m, MessageType.Unicast));
             connection.Reconnecting += Reconnecting;
             connection.Reconnected += Reconnected;
             connection.Closed += Disconnected;
@@ -68,12 +71,22 @@ namespace ChatClientCS.Services
 
         public async Task SendBroadcastMessageAsync(string msg)
         {
-            await hubProxy.Invoke("BroadcastChat", msg);
+            await hubProxy.Invoke("BroadcastTextMessage", msg);
+        }
+
+        public async Task SendBroadcastMessageAsync(byte[] img)
+        {
+            await hubProxy.Invoke("BroadcastImageMessage", img);
         }
 
         public async Task SendUnicastMessageAsync(string recepient, string msg)
         {
-            await hubProxy.Invoke("UnicastChat", new object[] { recepient, msg });
+            await hubProxy.Invoke("UnicastTextMessage", new object[] { recepient, msg });
+        }
+
+        public async Task SendUnicastMessageAsync(string recepient, byte[] img)
+        {
+            await hubProxy.Invoke("UnicastImageMessage", new object[] { recepient, img });
         }
     }
 }

@@ -11,7 +11,7 @@
                    Background="{DynamicResource MaterialDesignPaper}"
                    DataContext="{Binding Source={StaticResource VMLocator}, Path=MainVM}"
                    d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type={x:Type local:SampleMainWindowViewModel}}"
-                   Title="SignalChat" Height="450" Width="650" TitleCaps="False" TitleCharacterCasing="Normal" 
+                   Title="SignalChat" Height="450" Width="670" TitleCaps="False" TitleCharacterCasing="Normal" 
                    ShowTitleBar="True" BorderBrush="{DynamicResource PrimaryHueDarkBrush}">
     <i:Interaction.Triggers>
         <i:EventTrigger>

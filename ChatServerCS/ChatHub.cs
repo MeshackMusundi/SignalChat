@@ -61,16 +61,25 @@ namespace ChatServerCS
             }
         }
 
-        public void BroadcastChat(string message)
+        public void BroadcastTextMessage(string message)
         {
             var name = Clients.CallerState.UserName;
             if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(message))
             {
-                Clients.Others.BroadcastMessage(name, message);
+                Clients.Others.BroadcastTextMessage(name, message);
             }
         }
 
-        public void UnicastChat(string recepient, string message)
+        public void BroadcastImageMessage(byte[] img)
+        {
+            var name = Clients.CallerState.UserName;
+            if (img != null)
+            {
+                Clients.Others.BroadcastPictureMessage(name, img);
+            }
+        }
+
+        public void UnicastTextMessage(string recepient, string message)
         {
             var sender = Clients.CallerState.UserName;
             if (!string.IsNullOrEmpty(sender) && recepient != sender &&
@@ -78,7 +87,19 @@ namespace ChatServerCS
             {
                 User client = new User();
                 ChatClients.TryGetValue(recepient, out client);
-                Clients.Client(client.ID).UnicastMessage(sender, message);
+                Clients.Client(client.ID).UnicastTextMessage(sender, message);
+            }
+        }
+
+        public void UnicastImageMessage(string recepient, byte[] img)
+        {
+            var sender = Clients.CallerState.UserName;
+            if (!string.IsNullOrEmpty(sender) && recepient != sender &&
+                img != null && ChatClients.ContainsKey(recepient))
+            {
+                User client = new User();
+                ChatClients.TryGetValue(recepient, out client);
+                Clients.Client(client.ID).UnicastPictureMessage(sender, img);
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿using Microsoft.Practices.Unity;
+﻿using Unity;
 using ChatClientCS.Services;
 using ChatClientCS.ViewModels;
 

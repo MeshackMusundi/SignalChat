@@ -22,14 +22,14 @@
                         </Grid.OpacityMask>
                         <Ellipse x:Name="ClipEllipse" Fill="White" Stroke="Black"/>
                         <materialDesign:PackIcon Kind="AccountCircle" Width="144" Height="144" Margin="-12"/>
-                        <Image Source="{Binding Photo, FallbackValue={StaticResource BlankImage},
+                        <Image Source="{Binding ProfilePic, FallbackValue={StaticResource BlankImage},
                             TargetNullValue={StaticResource BlankImage}}"/>
                         <Ellipse Stroke="Black" StrokeThickness="1" UseLayoutRounding="True" Opacity="0.2"/>
                     </Grid>
                 </materialDesign:ColorZone>
                 <Button Grid.Row="0" Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}" 
                         HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,36,16"
-                        Command="{Binding SelectPhotoCommand}"
+                        Command="{Binding SelectProfilePicCommand}"
                         ToolTip="Click to select picture">
                     <materialDesign:PackIcon Kind="FileImage" Width="20" Height="20" />
                 </Button>

@@ -11,7 +11,8 @@ Public Class ChatService
     Public Event ConnectionReconnecting() Implements IChatService.ConnectionReconnecting
     Public Event ConnectionReconnected() Implements IChatService.ConnectionReconnected
     Public Event ConnectionClosed() Implements IChatService.ConnectionClosed
-    Public Event NewMessage(sender As String, msg As String, mt As MessageType) Implements IChatService.NewMessage
+    Public Event NewTextMessage(sender As String, msg As String, mt As MessageType) Implements IChatService.NewTextMessage
+    Public Event NewImageMessage(sender As String, img As Byte(), mt As MessageType) Implements IChatService.NewImageMessage
 
     Private hubProxy As IHubProxy
     Private connection As HubConnection
@@ -24,10 +25,14 @@ Public Class ChatService
         hubProxy.On(Of String)("ParticipantLogout", Sub(n) RaiseEvent ParticipantLoggedOut(n))
         hubProxy.On(Of String)("ParticipantDisconnection", Sub(n) RaiseEvent ParticipantDisconnected(n))
         hubProxy.On(Of String)("ParticipantReconnection", Sub(n) RaiseEvent ParticipantReconnected(n))
-        hubProxy.On(Of String, String)("BroadcastMessage",
-                                       Sub(n, m) RaiseEvent NewMessage(n, m, MessageType.Broadcast))
-        hubProxy.On(Of String, String)("UnicastMessage",
-                                       Sub(n, m) RaiseEvent NewMessage(n, m, MessageType.Unicast))
+        hubProxy.On(Of String, String)("BroadcastTextMessage",
+                                       Sub(n, m) RaiseEvent NewTextMessage(n, m, MessageType.Broadcast))
+        hubProxy.On(Of String, Byte())("BroadcastPictureMessage",
+                                       Sub(n, m) RaiseEvent NewImageMessage(n, m, MessageType.Broadcast))
+        hubProxy.On(Of String, String)("UnicastTextMessage",
+                                       Sub(n, m) RaiseEvent NewTextMessage(n, m, MessageType.Unicast))
+        hubProxy.On(Of String, Byte())("UnicastPictureMessage",
+                                       Sub(n, m) RaiseEvent NewImageMessage(n, m, MessageType.Unicast))
         AddHandler connection.Reconnecting, AddressOf Reconnecting
         AddHandler connection.Reconnected, AddressOf Reconnected
         AddHandler connection.Closed, AddressOf Disconnected
@@ -58,10 +63,18 @@ Public Class ChatService
     End Function
 
     Public Async Function SendBroadcastMessageAsync(msg As String) As Task Implements IChatService.SendBroadcastMessageAsync
-        Await hubProxy.Invoke("BroadcastChat", msg)
+        Await hubProxy.Invoke("BroadcastTextMessage", msg)
+    End Function
+
+    Public Async Function SendBroadcastMessageAsync(img As Byte()) As Task Implements IChatService.SendBroadcastMessageAsync
+        Await hubProxy.Invoke("BroadcastImageMessage", img)
     End Function
 
     Public Async Function SendUnicastMessageAsync(recepient As String, msg As String) As Task Implements IChatService.SendUnicastMessageAsync
-        Await hubProxy.Invoke("UnicastChat", New Object() {recepient, msg})
+        Await hubProxy.Invoke("UnicastTextMessage", New Object() {recepient, msg})
+    End Function
+
+    Public Async Function SendUnicastMessageAsync(recepient As String, img As Byte()) As Task Implements IChatService.SendUnicastMessageAsync
+        Await hubProxy.Invoke("UnicastImageMessage", New Object() {recepient, img})
     End Function
 End Class

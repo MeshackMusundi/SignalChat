@@ -22,13 +22,13 @@ Public Class MainWindowViewModel
         End Set
     End Property
 
-    Private _photo As String
-    Public Property Photo As String
+    Private _profilePic As String
+    Public Property ProfilePic As String
         Get
-            Return _photo
+            Return _profilePic
         End Get
         Set(value As String)
-            _photo = value
+            _profilePic = value
             OnPropertyChanged()
         End Set
     End Property
@@ -67,13 +67,13 @@ Public Class MainWindowViewModel
         End Set
     End Property
 
-    Private _message As String
-    Public Property Message As String
+    Private _textMessage As String
+    Public Property TextMessage As String
         Get
-            Return _message
+            Return _textMessage
         End Get
         Set(value As String)
-            _message = value
+            _textMessage = value
             OnPropertyChanged()
         End Set
     End Property
@@ -100,11 +100,11 @@ Public Class MainWindowViewModel
         End Set
     End Property
 
+#Region "Connect Command"
     Private _connectCommand As ICommand
     Public ReadOnly Property ConnectCommand As ICommand
         Get
-            If _connectCommand Is Nothing Then _connectCommand = New RelayCommandAsync(Function() Connect())
-            Return _connectCommand
+            Return If(_connectCommand, New RelayCommandAsync(Function() Connect()))
         End Get
     End Property
 
@@ -117,13 +117,13 @@ Public Class MainWindowViewModel
             Return False
         End Try
     End Function
+#End Region
 
+#Region "Login Command"
     Private _loginCommand As ICommand
     Public ReadOnly Property LoginCommand As ICommand
         Get
-            If _loginCommand Is Nothing Then _loginCommand =
-                New RelayCommandAsync(Function() Login(), AddressOf CanLogin)
-            Return _loginCommand
+            Return If(_loginCommand, New RelayCommandAsync(Function() Login(), AddressOf CanLogin))
         End Get
     End Property
 
@@ -148,13 +148,13 @@ Public Class MainWindowViewModel
     Private Function CanLogin() As Boolean
         Return Not String.IsNullOrEmpty(UserName) AndAlso UserName.Length >= 2 AndAlso IsConnected
     End Function
+#End Region
 
+#Region "Logout Command"
     Private _logoutCommand As ICommand
     Public ReadOnly Property LogoutCommand As ICommand
         Get
-            If _logoutCommand Is Nothing Then _logoutCommand =
-                New RelayCommandAsync(Function() Logout(), AddressOf CanLogout)
-            Return _logoutCommand
+            Return If(_logoutCommand, New RelayCommandAsync(Function() Logout(), AddressOf CanLogout))
         End Get
     End Property
 
@@ -171,45 +171,79 @@ Public Class MainWindowViewModel
     Private Function CanLogout() As Boolean
         Return IsConnected AndAlso IsLoggedIn
     End Function
+#End Region
 
-    Private _sendMessageCommand As ICommand
-    Public ReadOnly Property SendMessageCommand As ICommand
+#Region "Send Text Message Command"
+    Private _sendTextMessageCommand As ICommand
+    Public ReadOnly Property SendTextMessageCommand As ICommand
         Get
-            If _sendMessageCommand Is Nothing Then _sendMessageCommand =
-                New RelayCommandAsync(Function() SendMessage(), AddressOf CanSendMessage)
-            Return _sendMessageCommand
+            Return If(_sendTextMessageCommand, New RelayCommandAsync(Function() SendTextMessage(),
+                                                                     AddressOf CanSendTextMessage))
         End Get
     End Property
 
-    Private Async Function SendMessage() As Task(Of Boolean)
+    Private Async Function SendTextMessage() As Task(Of Boolean)
         Try
             Dim recepient = _selectedParticipant.Name
-            Await chatService.SendUnicastMessageAsync(recepient, _message)
+            Await chatService.SendUnicastMessageAsync(recepient, _textMessage)
             Return True
         Catch ex As Exception
             Return False
         Finally
-            Dim msg As New ChatMessage With {.Author = UserName, .Message = _message,
+            Dim msg As New ChatMessage With {.Author = UserName, .Message = _textMessage,
                 .Time = DateTime.Now, .IsOriginNative = True}
             SelectedParticipant.Chatter.Add(msg)
-            Message = String.Empty
+            TextMessage = String.Empty
         End Try
     End Function
 
-    Private Function CanSendMessage() As Boolean
-        Return Not String.IsNullOrEmpty(Message) AndAlso IsConnected AndAlso
+    Private Function CanSendTextMessage() As Boolean
+        Return Not String.IsNullOrEmpty(TextMessage) AndAlso IsConnected AndAlso
             _selectedParticipant IsNot Nothing AndAlso _selectedParticipant.IsLoggedIn
     End Function
+#End Region
 
-    Private _selectPhotoCommand As ICommand
-    Public ReadOnly Property SelectPhotoCommand As ICommand
+#Region "Send Picture Message Command"
+    Private _sendImageMessageCommand As ICommand
+    Public ReadOnly Property SendImageMessageCommand As ICommand
         Get
-            If _selectPhotoCommand Is Nothing Then _selectPhotoCommand = New RelayCommand(AddressOf SelectPhoto)
-            Return _selectPhotoCommand
+            Return If(_sendImageMessageCommand, New RelayCommandAsync(Function() SendImageMessage(),
+                                                                     AddressOf CanSendImageMessage))
         End Get
     End Property
 
-    Private Sub SelectPhoto()
+    Private Async Function SendImageMessage() As Task(Of Boolean)
+        Dim pic = dialogService.OpenFile("Select image file", "Images (*.jpg;*.png)|*.jpg;*.png")
+        If String.IsNullOrEmpty(pic) Then Return False
+
+        Dim img = Await Task.Run(Function() File.ReadAllBytes(pic))
+
+        Try
+            Dim recepient = _selectedParticipant.Name
+            Await chatService.SendUnicastMessageAsync(recepient, img)
+            Return True
+        Catch ex As Exception
+            Return False
+        Finally
+            Dim msg As New ChatMessage With {.Author = UserName, .Picture = pic, .Time = DateTime.Now, .IsOriginNative = True}
+            SelectedParticipant.Chatter.Add(msg)
+        End Try
+    End Function
+
+    Private Function CanSendImageMessage() As Boolean
+        Return IsConnected AndAlso _selectedParticipant IsNot Nothing AndAlso _selectedParticipant.IsLoggedIn
+    End Function
+#End Region
+
+#Region "Select Profile Picture Command"
+    Private _selectProfilePicCommand As ICommand
+    Public ReadOnly Property SelectPhotoCommand As ICommand
+        Get
+            Return If(_selectProfilePicCommand, New RelayCommand(AddressOf SelectProfilePic))
+        End Get
+    End Property
+
+    Private Sub SelectProfilePic()
         Dim pic = dialogService.OpenFile("Select image file", "Images (*.jpg;*.png)|*.jpg;*.png")
         If Not String.IsNullOrEmpty(pic) Then
             Dim img = Image.FromFile(pic)
@@ -217,14 +251,53 @@ Public Class MainWindowViewModel
                 dialogService.ShowNotification($"Image size should be {MAX_IMAGE_WIDTH} x {MAX_IMAGE_HEIGHT} or less.")
                 Exit Sub
             End If
-            Photo = pic
+            ProfilePic = pic
+        End If
+    End Sub
+#End Region
+
+#Region "Open Image Command"
+    Private _openImageCommand As ICommand
+    Public ReadOnly Property OpenImageCommand As ICommand
+        Get
+            Return If(_openImageCommand, New RelayCommand(Of ChatMessage)(Sub(m) OpenImage(m)))
+        End Get
+    End Property
+
+    Private Sub OpenImage(ByVal msg As ChatMessage)
+        Dim img = msg.Picture
+        If (String.IsNullOrEmpty(img) OrElse Not File.Exists(img)) Then Exit Sub
+        Process.Start(img)
+    End Sub
+#End Region
+
+#Region "Event handlers"
+    Private Sub NewTextMessage(name As String, msg As String, mt As MessageType)
+        If mt = MessageType.Unicast Then
+            Dim cm As New ChatMessage With {.Author = name, .Message = msg, .Time = DateTime.Now}
+            Dim sender = _participants.Where(Function(u) String.Equals(u.Name, name)).FirstOrDefault
+            ctxTaskFactory.StartNew(Sub() sender.Chatter.Add(cm)).Wait()
+
+            If Not (SelectedParticipant IsNot Nothing AndAlso sender.Name.Equals(SelectedParticipant.Name)) Then
+                ctxTaskFactory.StartNew(Sub() sender.HasSentNewMessage = True).Wait()
+            End If
         End If
     End Sub
 
-#Region "Event handlers"
-    Private Sub NewMessage(name As String, msg As String, mt As MessageType)
+    Private Sub NewImageMessage(name As String, pic As Byte(), mt As MessageType)
         If mt = MessageType.Unicast Then
-            Dim cm As New ChatMessage With {.Author = name, .Message = msg, .Time = DateTime.Now}
+            Dim imgsDirectory = Path.Combine(Environment.CurrentDirectory, "Image Messages")
+            If Not Directory.Exists(imgsDirectory) Then Directory.CreateDirectory(imgsDirectory)
+
+            Dim imgsCount = Directory.EnumerateFiles(imgsDirectory).Count() + 1
+            Dim imgPath = Path.Combine(imgsDirectory, $"IMG_{imgsCount}.jpg")
+
+            Dim converter As New ImageConverter
+            Using img As Image = CType(converter.ConvertFrom(pic), Image)
+                img.Save(imgPath)
+            End Using
+
+            Dim cm As New ChatMessage With {.Author = name, .Picture = imgPath, .Time = DateTime.Now}
             Dim sender = _participants.Where(Function(u) String.Equals(u.Name, name)).FirstOrDefault
             ctxTaskFactory.StartNew(Sub() sender.Chatter.Add(cm)).Wait()
 
@@ -277,14 +350,15 @@ Public Class MainWindowViewModel
 
     Private Function Avatar() As Byte()
         Dim pic As Byte() = Nothing
-        If Not String.IsNullOrEmpty(_photo) Then pic = File.ReadAllBytes(_photo)
+        If Not String.IsNullOrEmpty(_profilePic) Then pic = File.ReadAllBytes(_profilePic)
         Return pic
     End Function
 
     Public Sub New(chatSvc As IChatService, diagSvc As IDialogService)
         dialogService = diagSvc
         chatService = chatSvc
-        AddHandler chatSvc.NewMessage, AddressOf NewMessage
+        AddHandler chatSvc.NewTextMessage, AddressOf NewTextMessage
+        AddHandler chatSvc.NewImageMessage, AddressOf NewImageMessage
         AddHandler chatSvc.ParticipantLoggedIn, AddressOf ParticipantLogin
         AddHandler chatSvc.ParticipantLoggedOut, AddressOf ParticipantDisconnection
         AddHandler chatSvc.ParticipantDisconnected, AddressOf ParticipantDisconnection

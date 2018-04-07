@@ -1,4 +1,4 @@
-﻿Imports Microsoft.Practices.Unity
+﻿Imports Unity
 
 Public Class ViewModelLocator
     Private container As UnityContainer

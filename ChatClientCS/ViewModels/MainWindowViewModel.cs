@@ -10,6 +10,8 @@ using ChatClientCS.Enums;
 using ChatClientCS.Models;
 using ChatClientCS.Commands;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Diagnostics;
 
 namespace ChatClientCS.ViewModels
 {
@@ -32,13 +34,13 @@ namespace ChatClientCS.ViewModels
             }
         }
 
-        private string _photo;
-        public string Photo
+        private string _profilePic;
+        public string ProfilePic
         {
-            get { return _photo; }
+            get { return _profilePic; }
             set
             {
-                _photo = value;
+                _profilePic = value;
                 OnPropertyChanged();
             }
         }
@@ -77,13 +79,13 @@ namespace ChatClientCS.ViewModels
             }
         }
 
-        private string _message;
-        public string Message
+        private string _textMessage;
+        public string TextMessage
         {
-            get { return _message; }
+            get { return _textMessage; }
             set
             {
-                _message = value;
+                _textMessage = value;
                 OnPropertyChanged();
             }
         }
@@ -110,6 +112,7 @@ namespace ChatClientCS.ViewModels
             }
         }
 
+        #region Connect Command
         private ICommand _connectCommand;
         public ICommand ConnectCommand
         {
@@ -130,7 +133,9 @@ namespace ChatClientCS.ViewModels
             }
             catch (Exception) { return false; }
         }
+        #endregion
 
+        #region Login Command
         private ICommand _loginCommand;
         public ICommand LoginCommand
         {
@@ -164,13 +169,13 @@ namespace ChatClientCS.ViewModels
             catch (Exception) { return false; }
         }
 
-
-
         private bool CanLogin()
         {
             return !string.IsNullOrEmpty(UserName) && UserName.Length >= 2 && IsConnected;
         }
+        #endregion
 
+        #region Logout Command
         private ICommand _logoutCommand;
         public ICommand LogoutCommand
         {
@@ -197,24 +202,26 @@ namespace ChatClientCS.ViewModels
         {
             return IsConnected && IsLoggedIn;
         }
+        #endregion
 
-        private ICommand _sendMessageCommand;
-        public ICommand SendMessageCommand
+        #region Send Text Message Command
+        private ICommand _sendTextMessageCommand;
+        public ICommand SendTextMessageCommand
         {
             get
             {
-                if (_sendMessageCommand == null) _sendMessageCommand =
-                        new RelayCommandAsync(() => SendMessage(), (o) => CanSendMessage());
-                return _sendMessageCommand;
+                if (_sendTextMessageCommand == null) _sendTextMessageCommand =
+                        new RelayCommandAsync(() => SendTextMessage(), (o) => CanSendTextMessage());
+                return _sendTextMessageCommand;
             }
         }
 
-        private async Task<bool> SendMessage()
+        private async Task<bool> SendTextMessage()
         {
             try
             {
                 var recepient = _selectedParticipant.Name;
-                await chatService.SendUnicastMessageAsync(recepient, _message);
+                await chatService.SendUnicastMessageAsync(recepient, _textMessage);
                 return true;
             }
             catch (Exception) { return false; }
@@ -223,32 +230,73 @@ namespace ChatClientCS.ViewModels
                 ChatMessage msg = new ChatMessage
                 {
                     Author = UserName,
-                    Message = _message,
+                    Message = _textMessage,
                     Time = DateTime.Now,
                     IsOriginNative = true
                 };
                 SelectedParticipant.Chatter.Add(msg);
-                Message = string.Empty;
+                TextMessage = string.Empty;
             }
         }
 
-        private bool CanSendMessage()
+        private bool CanSendTextMessage()
         {
-            return (!string.IsNullOrEmpty(Message) && IsConnected &&
+            return (!string.IsNullOrEmpty(TextMessage) && IsConnected &&
                 _selectedParticipant != null && _selectedParticipant.IsLoggedIn);
         }
+        #endregion
 
-        private ICommand _selectPhotoCommand;
-        public ICommand SelectPhotoCommand
+        #region Send Picture Message Command
+        private ICommand _sendImageMessageCommand;
+        public ICommand SendImageMessageCommand
         {
             get
             {
-                if (_selectPhotoCommand == null) _selectPhotoCommand = new RelayCommand((o) => SelectPhoto());
-                return _selectPhotoCommand;
+                if (_sendImageMessageCommand == null) _sendImageMessageCommand =
+                        new RelayCommandAsync(() => SendImageMessage(), (o) => CanSendImageMessage());
+                return _sendImageMessageCommand;
             }
         }
 
-        private void SelectPhoto()
+        private async Task<bool> SendImageMessage()
+        {
+            var pic = dialogService.OpenFile("Select image file", "Images (*.jpg;*.png)|*.jpg;*.png");
+            if (string.IsNullOrEmpty(pic)) return false;
+
+            var img = await Task.Run(() => File.ReadAllBytes(pic));
+
+            try
+            {
+                var recepient = _selectedParticipant.Name;
+                await chatService.SendUnicastMessageAsync(recepient, img);
+                return true;
+            }
+            catch (Exception) { return false; }
+            finally
+            {
+                ChatMessage msg = new ChatMessage { Author = UserName, Picture = pic, Time = DateTime.Now, IsOriginNative = true };
+                SelectedParticipant.Chatter.Add(msg);
+            }           
+        }
+
+        private bool CanSendImageMessage()
+        {
+            return (IsConnected && _selectedParticipant != null && _selectedParticipant.IsLoggedIn);
+        }
+        #endregion
+
+        #region Select Profile Picture Command
+        private ICommand _selectProfilePicCommand;
+        public ICommand SelectProfilePicCommand
+        {
+            get
+            {
+                if (_selectProfilePicCommand == null) _selectProfilePicCommand = new RelayCommand((o) => SelectProfilePic());
+                return _selectProfilePicCommand;
+            }
+        }
+
+        private void SelectProfilePic()
         {
             var pic = dialogService.OpenFile("Select image file", "Images (*.jpg;*.png)|*.jpg;*.png");
             if (!string.IsNullOrEmpty(pic))
@@ -259,17 +307,64 @@ namespace ChatClientCS.ViewModels
                     dialogService.ShowNotification($"Image size should be {MAX_IMAGE_WIDTH} x {MAX_IMAGE_HEIGHT} or less.");
                     return;
                 }
-                Photo = pic;
+                ProfilePic = pic;
+            }
+        }
+        #endregion
+
+        #region Open Image Command
+        private ICommand _openImageCommand;
+        public ICommand OpenImageCommand
+        {
+            get
+            {
+                if (_openImageCommand == null) _openImageCommand = new RelayCommand<ChatMessage>((m) => OpenImage(m));
+                return _openImageCommand;
             }
         }
 
-        #region "Event handlers"
-        private void NewMessage(string name, string msg, MessageType mt)
+        private void OpenImage(ChatMessage msg)
+        {
+            var img = msg.Picture;
+            if (string.IsNullOrEmpty(img) || !File.Exists(img)) return;
+            Process.Start(img);
+        }
+        #endregion
+
+        #region Event Handlers
+        private void NewTextMessage(string name, string msg, MessageType mt)
         {
             if (mt == MessageType.Unicast)
             {
                 ChatMessage cm = new ChatMessage { Author = name, Message = msg, Time = DateTime.Now };
                 var sender = _participants.Where((u) => string.Equals(u.Name, name)).FirstOrDefault();
+                ctxTaskFactory.StartNew(() => sender.Chatter.Add(cm)).Wait();
+
+                if (!(SelectedParticipant != null && sender.Name.Equals(SelectedParticipant.Name)))
+                {
+                    ctxTaskFactory.StartNew(() => sender.HasSentNewMessage = true).Wait();
+                }
+            }
+        }
+
+        private void NewImageMessage(string name, byte[] pic, MessageType mt)
+        {
+            if (mt == MessageType.Unicast)
+            {
+                var imgsDirectory = Path.Combine(Environment.CurrentDirectory, "Image Messages");
+                if (!Directory.Exists(imgsDirectory)) Directory.CreateDirectory(imgsDirectory);
+
+                var imgsCount = Directory.EnumerateFiles(imgsDirectory).Count() + 1;
+                var imgPath = Path.Combine(imgsDirectory, $"IMG_{imgsCount}.jpg");
+
+                ImageConverter converter = new ImageConverter();
+                using (Image img = (Image)converter.ConvertFrom(pic))
+                {
+                    img.Save(imgPath);
+                }
+
+                ChatMessage cm = new ChatMessage { Author = name, Picture = imgPath, Time = DateTime.Now };
+                var sender = _participants.Where(u => string.Equals(u.Name, name)).FirstOrDefault();
                 ctxTaskFactory.StartNew(() => sender.Chatter.Add(cm)).Wait();
 
                 if (!(SelectedParticipant != null && sender.Name.Equals(SelectedParticipant.Name)))
@@ -335,7 +430,7 @@ namespace ChatClientCS.ViewModels
         private byte[] Avatar()
         {
             byte[] pic = null;
-            if (!string.IsNullOrEmpty(_photo)) pic = File.ReadAllBytes(_photo);
+            if (!string.IsNullOrEmpty(_profilePic)) pic = File.ReadAllBytes(_profilePic);
             return pic;
         }
 
@@ -344,7 +439,8 @@ namespace ChatClientCS.ViewModels
             dialogService = diagSvc;
             chatService = chatSvc;
 
-            chatSvc.NewMessage += NewMessage;
+            chatSvc.NewTextMessage += NewTextMessage;
+            chatSvc.NewImageMessage += NewImageMessage;
             chatSvc.ParticipantLoggedIn += ParticipantLogin;
             chatSvc.ParticipantLoggedOut += ParticipantDisconnection;
             chatSvc.ParticipantDisconnected += ParticipantDisconnection;

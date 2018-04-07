@@ -48,20 +48,37 @@ Public Class ChatHub
         End If
     End Sub
 
-    Public Sub BroadcastChat(message As String)
+    Public Sub BroadcastTextMessage(message As String)
         Dim name = Clients.CallerState.UserName
         If Not String.IsNullOrEmpty(name) AndAlso Not String.IsNullOrEmpty(message) Then
-            Clients.Others.BroadcastMessage(name, message)
+            Clients.Others.BroadcastTextMessage(name, message)
         End If
     End Sub
 
-    Public Sub UnicastChat(recepient As String, message As String)
+    Public Sub BroadcastImageMessage(img As Byte())
+        Dim name = Clients.CallerState.UserName
+        If img IsNot Nothing Then
+            Clients.Others.BroadcastPictureMessage(name, img)
+        End If
+    End Sub
+
+    Public Sub UnicastTextMessage(recepient As String, message As String)
         Dim sender = Clients.CallerState.UserName
         If Not String.IsNullOrEmpty(sender) AndAlso recepient <> sender AndAlso
            Not String.IsNullOrEmpty(message) AndAlso ChatClients.Keys.Contains(recepient) Then
             Dim client As New User
             ChatClients.TryGetValue(recepient, client)
-            Clients.Client(client.ID).UnicastMessage(sender, message)
+            Clients.Client(client.ID).UnicastTextMessage(sender, message)
+        End If
+    End Sub
+
+    Public Sub UnicastImageMessage(recepient As String, img As Byte())
+        Dim sender = Clients.CallerState.UserName
+        If Not String.IsNullOrEmpty(sender) AndAlso recepient <> sender AndAlso
+           img IsNot Nothing AndAlso ChatClients.Keys.Contains(recepient) Then
+            Dim client As New User
+            ChatClients.TryGetValue(recepient, client)
+            Clients.Client(client.ID).UnicastPictureMessage(sender, img)
         End If
     End Sub
 End Class

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ChatClientCS.ViewModels;
 using ChatClientCS.Models;
 using System.Collections.ObjectModel;
@@ -51,27 +48,34 @@ namespace ChatClientCS.Data
             someChatter.Add(new ChatMessage
             {
                 Author = "Batman",
-                Message = "The Batmobile sucks",
+                Message = "What do you think about the Batmobile?",
+                Time = DateTime.Now,
+                IsOriginNative = true
+            });
+            someChatter.Add(new ChatMessage
+            {
+                Author = "Batman",
+                Message = "Coolest superhero ride?",
                 Time = DateTime.Now,
                 IsOriginNative = true
             });
             someChatter.Add(new ChatMessage
             {
                 Author = "Superman",
-                Message = "It always has...",
+                Message = "Only if you don't have superpowers :P",
                 Time = DateTime.Now
             });
             someChatter.Add(new ChatMessage
             {
                 Author = "Batman",
-                Message = "Really?! You never said so before.",
+                Message = "I'm rich. That's my superpower.",
                 Time = DateTime.Now,
                 IsOriginNative = true
             });
             someChatter.Add(new ChatMessage
             {
                 Author = "Superman",
-                Message = "Didn't want to hurt your feelings :D. Lorem Ipsum something blah blah blah blah blah blah blah blah. Lorem Ipsum something blah blah blah blah.",
+                Message = ":D Lorem Ipsum something blah blah blah blah blah blah blah blah. Lorem Ipsum something blah blah blah blah.",
                 Time = DateTime.Now
             });
             someChatter.Add(new ChatMessage
