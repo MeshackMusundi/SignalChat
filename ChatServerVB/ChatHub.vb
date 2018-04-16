@@ -81,4 +81,12 @@ Public Class ChatHub
             Clients.Client(client.ID).UnicastPictureMessage(sender, img)
         End If
     End Sub
+
+    Public Sub Typing(recepient As String)
+        If String.IsNullOrEmpty(recepient) Then Exit Sub
+        Dim sender = Clients.CallerState.UserName
+        Dim client As New User
+        ChatClients.TryGetValue(recepient, client)
+        Clients.Client(client.ID).ParticipantTyping(sender)
+    End Sub
 End Class

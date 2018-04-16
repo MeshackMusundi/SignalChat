@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using ChatClientCS.ViewModels;
 using ChatClientCS.Models;
 using System.Collections.ObjectModel;
+using System.IO;
 
 namespace ChatClientCS.Data
 {
@@ -93,11 +97,11 @@ namespace ChatClientCS.Data
                 IsOriginNative = true
             });
 
-            Participants.Add(new Participant { Name = "Superman", Chatter = someChatter });
+            Participants.Add(new Participant { Name = "Superman", Chatter = someChatter, IsTyping = true, IsLoggedIn = true });
             Participants.Add(new Participant { Name = "Wonder Woman", Chatter = someChatter, IsLoggedIn = false });
             Participants.Add(new Participant { Name = "Aquaman", Chatter = someChatter, HasSentNewMessage = true });
             Participants.Add(new Participant { Name = "Captain Canada", Chatter = someChatter, HasSentNewMessage = true });
-            Participants.Add(new Participant { Name = "Iron Man", Chatter = someChatter });
+            Participants.Add(new Participant { Name = "Iron Man", Chatter = someChatter, IsTyping = true });
 
             SelectedParticipant = Participants.First();
         }

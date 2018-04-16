@@ -132,8 +132,8 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="50"/>
                         <ColumnDefinition/>
-                        <ColumnDefinition Width="15"/>
-                        <ColumnDefinition Width="25"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="20"/>
                     </Grid.ColumnDefinitions>
                     <Rectangle x:Name="ParticipantRct" Fill="{DynamicResource PrimaryHueMidBrush}"
                                Visibility="Hidden"/>
@@ -156,7 +156,12 @@
                     <!--New Message icon-->
                     <materialDesign:PackIcon Name="NewMessageIcon" Grid.Column="3" SnapsToDevicePixels="True"
                                              VerticalAlignment="Center" HorizontalAlignment="Center"
-                                             Kind="MessageReplyText" Opacity="0.5" Visibility="Hidden"/>
+                                             Kind="MessageReplyText" Opacity="0.7" Visibility="Hidden"/>
+                    <!--Typing icon-->
+                    <materialDesign:PackIcon Name="TypingIcon" Grid.Column="3" SnapsToDevicePixels="True"
+                                             VerticalAlignment="Center" HorizontalAlignment="Center"
+                                             Kind="LeadPencil" Opacity="0.8" Visibility="Hidden"/>
+
                     <!--Online-->
                     <Ellipse Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" 
                              Width="8" Height="8">
@@ -183,6 +188,10 @@
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding HasSentNewMessage}" Value="True">
                     <Setter TargetName="NewMessageIcon" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsTyping}" Value="True">
+                    <Setter TargetName="NewMessageIcon" Property="Visibility" Value="Hidden"/>
+                    <Setter TargetName="TypingIcon" Property="Visibility" Value="Visible"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Path=IsSelected,
                     RelativeSource={RelativeSource FindAncestor, AncestorType=ListBoxItem}}" Value="true">
@@ -311,9 +320,15 @@
                         <TextBox x:Name="MessageTxtBox" BorderBrush="Transparent"
                                  TextWrapping="Wrap" AcceptsReturn="True" CaretBrush="#7F000000"
                                  VerticalScrollBarVisibility="Auto"
-                                 Text="{Binding TextMessage, UpdateSourceTrigger=PropertyChanged}"/>
+                                 Text="{Binding TextMessage, UpdateSourceTrigger=PropertyChanged}">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="KeyUp">
+                                    <i:InvokeCommandAction Command="{Binding TypingCommand}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
                         <!--Image-->
-                        <Button Grid.Column="1" Foreground="Gray" Margin="4"
+                        <Button Grid.Column="1" Foreground="#FF6E6E6E" Margin="4"
                                 Style="{DynamicResource ImageButtonStyle}"
                                 Command="{Binding SendImageMessageCommand}"/>
                     </Grid>
@@ -325,4 +340,4 @@
             </Grid>
         </Border>
     </Grid>
-</UserControl>    
+</UserControl>

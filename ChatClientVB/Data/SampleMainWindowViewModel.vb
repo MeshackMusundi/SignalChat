@@ -54,11 +54,11 @@ Public Class SampleMainWindowViewModel
         someChatter.Add(New ChatMessage With {.Author = "Batman", .Message = "How's Martha?",
                         .Time = DateTime.Now, .IsOriginNative = True})
 
-        Participants.Add(New Participant With {.Name = "Superman", .Chatter = someChatter})
+        Participants.Add(New Participant With {.Name = "Superman", .Chatter = someChatter, .IsTyping = True})
         Participants.Add(New Participant With {.Name = "Wonder Woman", .Chatter = someChatter, .IsLoggedIn = False})
         Participants.Add(New Participant With {.Name = "Aquaman", .Chatter = someChatter, .HasSentNewMessage = True})
         Participants.Add(New Participant With {.Name = "Captain Canada", .Chatter = someChatter, .HasSentNewMessage = True})
-        Participants.Add(New Participant With {.Name = "Iron Man", .Chatter = someChatter})
+        Participants.Add(New Participant With {.Name = "Iron Man", .Chatter = someChatter, .IsTyping = True})
 
         SelectedParticipant = Participants.First
     End Sub

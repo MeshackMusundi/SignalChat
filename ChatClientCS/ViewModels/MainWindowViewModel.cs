@@ -12,6 +12,7 @@ using ChatClientCS.Commands;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Diagnostics;
+using System.Reactive.Linq;
 
 namespace ChatClientCS.ViewModels
 {
@@ -201,6 +202,34 @@ namespace ChatClientCS.ViewModels
         private bool CanLogout()
         {
             return IsConnected && IsLoggedIn;
+        }
+        #endregion
+
+        #region Typing Command
+        private ICommand _typingCommand;
+        public ICommand TypingCommand
+        {
+            get
+            {
+                if (_typingCommand == null) _typingCommand =
+                        new RelayCommandAsync(() => Typing(), (o) => CanUseTypingCommand());
+                return _typingCommand;
+            }
+        }
+
+        private async Task<bool> Typing()
+        {
+            try
+            {
+                await chatService.TypingAsync(SelectedParticipant.Name);
+                return true;
+            }
+            catch (Exception) { return false; }
+        }
+
+        private bool CanUseTypingCommand()
+        {
+            return (SelectedParticipant != null && SelectedParticipant.IsLoggedIn);
         }
         #endregion
 
@@ -425,6 +454,16 @@ namespace ChatClientCS.ViewModels
                 }
             });
         }
+
+        private void ParticipantTyping(string name)
+        {
+            var person = Participants.Where((p) => string.Equals(p.Name, name)).FirstOrDefault();
+            if (person != null && !person.IsTyping)
+            {
+                person.IsTyping = true;
+                Observable.Timer(TimeSpan.FromMilliseconds(1500)).Subscribe(t => person.IsTyping = false);
+            }
+        }
         #endregion
 
         private byte[] Avatar()
@@ -445,6 +484,7 @@ namespace ChatClientCS.ViewModels
             chatSvc.ParticipantLoggedOut += ParticipantDisconnection;
             chatSvc.ParticipantDisconnected += ParticipantDisconnection;
             chatSvc.ParticipantReconnected += ParticipantReconnection;
+            chatSvc.ParticipantTyping += ParticipantTyping;
             chatSvc.ConnectionReconnecting += Reconnecting;
             chatSvc.ConnectionReconnected += Reconnected;
             chatSvc.ConnectionClosed += Disconnected;

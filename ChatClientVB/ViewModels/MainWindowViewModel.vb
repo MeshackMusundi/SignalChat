@@ -1,6 +1,7 @@
 ﻿Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Drawing
+Imports System.Reactive.Linq
 
 Public Class MainWindowViewModel
     Inherits ViewModelBase
@@ -170,6 +171,28 @@ Public Class MainWindowViewModel
 
     Private Function CanLogout() As Boolean
         Return IsConnected AndAlso IsLoggedIn
+    End Function
+#End Region
+
+#Region "Typing Command"
+    Private _typingCommand As ICommand
+    Public ReadOnly Property TypingCommand As ICommand
+        Get
+            Return If(_typingCommand, New RelayCommandAsync(Function() Typing(), AddressOf CanUseTypingCommand))
+        End Get
+    End Property
+
+    Private Async Function Typing() As Task(Of Boolean)
+        Try
+            Await chatService.TypingAsync(SelectedParticipant.Name)
+            Return True
+        Catch ex As Exception
+            Return False
+        End Try
+    End Function
+
+    Private Function CanUseTypingCommand() As Boolean
+        Return SelectedParticipant IsNot Nothing AndAlso SelectedParticipant.IsLoggedIn
     End Function
 #End Region
 
@@ -346,6 +369,14 @@ Public Class MainWindowViewModel
                                               End If
                                           End Sub)
     End Sub
+
+    Private Sub ParticipantTyping(ByVal name As String)
+        Dim person = Participants.Where(Function(p) String.Equals(p.Name, name)).FirstOrDefault()
+        If person IsNot Nothing AndAlso Not person.IsTyping Then
+            person.IsTyping = True
+            Observable.Timer(TimeSpan.FromMilliseconds(1500)).Subscribe(Sub(t) person.IsTyping = False)
+        End If
+    End Sub
 #End Region
 
     Private Function Avatar() As Byte()
@@ -363,6 +394,7 @@ Public Class MainWindowViewModel
         AddHandler chatSvc.ParticipantLoggedOut, AddressOf ParticipantDisconnection
         AddHandler chatSvc.ParticipantDisconnected, AddressOf ParticipantDisconnection
         AddHandler chatSvc.ParticipantReconnected, AddressOf ParticipantReconnection
+        AddHandler chatSvc.ParticipantTyping, AddressOf ParticipantTyping
         AddHandler chatSvc.ConnectionReconnecting, AddressOf Reconnecting
         AddHandler chatSvc.ConnectionReconnected, AddressOf Reconnected
         AddHandler chatSvc.ConnectionClosed, AddressOf Disconnected

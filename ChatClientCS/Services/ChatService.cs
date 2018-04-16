@@ -19,6 +19,7 @@ namespace ChatClientCS.Services
         public event Action ConnectionReconnecting;
         public event Action ConnectionReconnected;
         public event Action ConnectionClosed;
+        public event Action<string> ParticipantTyping;
 
         private IHubProxy hubProxy;
         private HubConnection connection;
@@ -36,6 +37,7 @@ namespace ChatClientCS.Services
             hubProxy.On<string, byte[]>("BroadcastPictureMessage", (n, m) => NewImageMessage?.Invoke(n, m, MessageType.Broadcast));
             hubProxy.On<string, string>("UnicastTextMessage", (n, m) => NewTextMessage?.Invoke(n, m, MessageType.Unicast));
             hubProxy.On<string, byte[]>("UnicastPictureMessage", (n, m) => NewImageMessage?.Invoke(n, m, MessageType.Unicast));
+            hubProxy.On<string>("ParticipantTyping", (p) => ParticipantTyping?.Invoke(p));
             connection.Reconnecting += Reconnecting;
             connection.Reconnected += Reconnected;
             connection.Closed += Disconnected;
@@ -87,6 +89,11 @@ namespace ChatClientCS.Services
         public async Task SendUnicastMessageAsync(string recepient, byte[] img)
         {
             await hubProxy.Invoke("UnicastImageMessage", new object[] { recepient, img });
+        }
+
+        public async Task TypingAsync(string recepient)
+        {
+            await hubProxy.Invoke("Typing", recepient);
         }
     }
 }

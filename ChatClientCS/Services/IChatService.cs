@@ -17,6 +17,7 @@ namespace ChatClientCS.Services
         event Action ConnectionClosed;
         event Action<string, string, MessageType> NewTextMessage;
         event Action<string, byte[], MessageType> NewImageMessage;
+        event Action<string> ParticipantTyping;
 
         Task ConnectAsync();
         Task<List<User>> LoginAsync(string name, byte[] photo);
@@ -26,5 +27,6 @@ namespace ChatClientCS.Services
         Task SendBroadcastMessageAsync(byte[] img);
         Task SendUnicastMessageAsync(string recepient, string msg);
         Task SendUnicastMessageAsync(string recepient, byte[] img);
+        Task TypingAsync(string recepient);
     }
 }

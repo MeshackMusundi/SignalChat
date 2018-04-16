@@ -102,5 +102,14 @@ namespace ChatServerCS
                 Clients.Client(client.ID).UnicastPictureMessage(sender, img);
             }
         }
+
+        public void Typing(string recepient)
+        {
+            if (string.IsNullOrEmpty(recepient)) return;
+            var sender = Clients.CallerState.UserName;
+            User client = new User();
+            ChatClients.TryGetValue(recepient, out client);
+            Clients.Client(client.ID).ParticipantTyping(sender);
+        }
     }
 }

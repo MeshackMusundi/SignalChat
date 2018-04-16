@@ -1,4 +1,5 @@
 ﻿Imports System.Net
+Imports ChatClientVB
 Imports Microsoft.AspNet.SignalR.Client
 
 Public Class ChatService
@@ -13,6 +14,7 @@ Public Class ChatService
     Public Event ConnectionClosed() Implements IChatService.ConnectionClosed
     Public Event NewTextMessage(sender As String, msg As String, mt As MessageType) Implements IChatService.NewTextMessage
     Public Event NewImageMessage(sender As String, img As Byte(), mt As MessageType) Implements IChatService.NewImageMessage
+    Public Event ParticipantTyping(name As String) Implements IChatService.ParticipantTyping
 
     Private hubProxy As IHubProxy
     Private connection As HubConnection
@@ -33,6 +35,8 @@ Public Class ChatService
                                        Sub(n, m) RaiseEvent NewTextMessage(n, m, MessageType.Unicast))
         hubProxy.On(Of String, Byte())("UnicastPictureMessage",
                                        Sub(n, m) RaiseEvent NewImageMessage(n, m, MessageType.Unicast))
+        hubProxy.On(Of String)("ParticipantTyping", Sub(p) RaiseEvent ParticipantTyping(p))
+
         AddHandler connection.Reconnecting, AddressOf Reconnecting
         AddHandler connection.Reconnected, AddressOf Reconnected
         AddHandler connection.Closed, AddressOf Disconnected
@@ -76,5 +80,9 @@ Public Class ChatService
 
     Public Async Function SendUnicastMessageAsync(recepient As String, img As Byte()) As Task Implements IChatService.SendUnicastMessageAsync
         Await hubProxy.Invoke("UnicastImageMessage", New Object() {recepient, img})
+    End Function
+
+    Public Async Function TypingAsync(recepient As String) As Task Implements IChatService.TypingAsync
+        Await hubProxy.Invoke("Typing", recepient)
     End Function
 End Class

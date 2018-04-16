@@ -28,4 +28,15 @@ Public Class Participant
             OnPropertyChanged()
         End Set
     End Property
+
+    Private _isTyping As Boolean
+    Public Property IsTyping As Boolean
+        Get
+            Return _isTyping
+        End Get
+        Set(value As Boolean)
+            _isTyping = value
+            OnPropertyChanged()
+        End Set
+    End Property
 End Class
