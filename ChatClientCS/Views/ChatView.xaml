@@ -160,7 +160,7 @@
                     <!--Typing icon-->
                     <materialDesign:PackIcon Name="TypingIcon" Grid.Column="3" SnapsToDevicePixels="True"
                                              VerticalAlignment="Center" HorizontalAlignment="Center"
-                                             Kind="LeadPencil" Opacity="0.8" Visibility="Hidden"/>
+                                             Kind="Feather" Opacity="0.8" Visibility="Hidden"/>
 
                     <!--Online-->
                     <Ellipse Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" 
