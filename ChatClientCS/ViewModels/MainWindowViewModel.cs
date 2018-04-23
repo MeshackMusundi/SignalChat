@@ -119,8 +119,7 @@ namespace ChatClientCS.ViewModels
         {
             get
             {
-                if (_connectCommand == null) _connectCommand = new RelayCommandAsync(() => Connect());
-                return _connectCommand;
+                return _connectCommand ?? (_connectCommand = new RelayCommandAsync(() => Connect()));
             }
         }
 
@@ -142,8 +141,8 @@ namespace ChatClientCS.ViewModels
         {
             get
             {
-                if (_loginCommand == null) _loginCommand = new RelayCommandAsync(() => Login(), (o) => CanLogin());
-                return _loginCommand;
+                return _loginCommand ?? (_loginCommand =
+                    new RelayCommandAsync(() => Login(), (o) => CanLogin()));
             }
         }
 
@@ -182,9 +181,8 @@ namespace ChatClientCS.ViewModels
         {
             get
             {
-                if (_logoutCommand == null) _logoutCommand =
-                        new RelayCommandAsync(() => Logout(), (o) => CanLogout());
-                return _logoutCommand;
+                return _logoutCommand ?? (_logoutCommand =
+                    new RelayCommandAsync(() => Logout(), (o) => CanLogout()));
             }
         }
 
@@ -211,9 +209,8 @@ namespace ChatClientCS.ViewModels
         {
             get
             {
-                if (_typingCommand == null) _typingCommand =
-                        new RelayCommandAsync(() => Typing(), (o) => CanUseTypingCommand());
-                return _typingCommand;
+                return _typingCommand ?? (_typingCommand =
+                    new RelayCommandAsync(() => Typing(), (o) => CanUseTypingCommand()));
             }
         }
 
@@ -239,9 +236,8 @@ namespace ChatClientCS.ViewModels
         {
             get
             {
-                if (_sendTextMessageCommand == null) _sendTextMessageCommand =
-                        new RelayCommandAsync(() => SendTextMessage(), (o) => CanSendTextMessage());
-                return _sendTextMessageCommand;
+                return _sendTextMessageCommand ?? (_sendTextMessageCommand =
+                    new RelayCommandAsync(() => SendTextMessage(), (o) => CanSendTextMessage()));
             }
         }
 
@@ -281,9 +277,8 @@ namespace ChatClientCS.ViewModels
         {
             get
             {
-                if (_sendImageMessageCommand == null) _sendImageMessageCommand =
-                        new RelayCommandAsync(() => SendImageMessage(), (o) => CanSendImageMessage());
-                return _sendImageMessageCommand;
+                return _sendImageMessageCommand ?? (_sendImageMessageCommand =
+                    new RelayCommandAsync(() => SendImageMessage(), (o) => CanSendImageMessage()));
             }
         }
 
@@ -320,8 +315,8 @@ namespace ChatClientCS.ViewModels
         {
             get
             {
-                if (_selectProfilePicCommand == null) _selectProfilePicCommand = new RelayCommand((o) => SelectProfilePic());
-                return _selectProfilePicCommand;
+                return _selectProfilePicCommand ?? (_selectProfilePicCommand =
+                    new RelayCommand((o) => SelectProfilePic()));
             }
         }
 
@@ -347,8 +342,8 @@ namespace ChatClientCS.ViewModels
         {
             get
             {
-                if (_openImageCommand == null) _openImageCommand = new RelayCommand<ChatMessage>((m) => OpenImage(m));
-                return _openImageCommand;
+                return _openImageCommand ?? (_openImageCommand =
+                    new RelayCommand<ChatMessage>((m) => OpenImage(m)));
             }
         }
 
