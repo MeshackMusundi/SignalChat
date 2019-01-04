@@ -19,7 +19,5 @@ Public Class Startup
     Public Sub Configuration(app As IAppBuilder)
         app.UseCors(CorsOptions.AllowAll)
         app.MapSignalR("/signalchat", New HubConfiguration())
-
-        GlobalHost.Configuration.MaxIncomingWebSocketMessageSize = Nothing
     End Sub
 End Class
