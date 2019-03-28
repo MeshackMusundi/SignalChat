@@ -7,6 +7,6 @@ SignalChat is a WPF-MVVM chat application that uses [SignalR](https://docs.micro
 - Visual Studio 2015/17,
 - .NET Framework 4.6
 
-# Acknowledgements
+## Acknowledgements
 - [MahApps.Metro](https://github.com/MahApps/MahApps.Metro)
 - [Material Design in XAML Toolkit](https://github.com/ButchersBoy/MaterialDesignInXamlToolkit)
